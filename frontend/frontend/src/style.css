@@ -349,3 +349,133 @@ code {
   font-weight: bold;
   color: white;
 }
+
+.chart-box {
+  margin-top: 30px;
+  height: 520px;
+  padding: 20px;
+}
+
+#healthChart {
+  width: 100% !important;
+  height: 450px !important;
+}
+
+.health-bars {
+  width: 80%;
+  margin: 20px auto;
+  text-align: left;
+}
+
+.health-bars label {
+  font-weight: bold;
+  display: block;
+  margin-top: 15px;
+}
+
+.bar {
+  width: 100%;
+  height: 18px;
+  background: #1f2937;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #374151;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+.action-table {
+  width: 90%;
+  margin: 20px auto;
+  border-collapse: collapse;
+}
+
+.action-table th,
+.action-table td {
+  border: 1px solid #374151;
+  padding: 12px;
+  text-align: center;
+}
+
+.action-table th {
+  background: #111827;
+  color: white;
+}
+
+.action-table td {
+  background: #020617;
+}
+
+.info-card {
+  width: 85%;
+  margin: 20px auto;
+  padding: 20px;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 12px;
+}
+
+.gauge-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 25px 0;
+  flex-wrap: wrap;
+}
+
+.gauge-card {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 18px;
+  width: 260px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.15);
+}
+
+.alarm-box {
+  margin: 20px auto;
+  padding: 18px;
+  width: 70%;
+  background: #7f1d1d;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+  border: 2px solid #ef4444;
+  border-radius: 14px;
+  text-align: center;
+  animation: blinkAlarm 0.8s infinite;
+}
+
+@keyframes blinkAlarm {
+  0% { opacity: 1; box-shadow: 0 0 10px #ef4444; }
+  50% { opacity: 0.45; box-shadow: 0 0 30px #ef4444; }
+  100% { opacity: 1; box-shadow: 0 0 10px #ef4444; }
+}
+
+.critical-flash {
+  animation: criticalBackground 1s infinite;
+}
+
+@keyframes criticalBackground {
+  0% { border-color: #374151; }
+  50% { border-color: #ef4444; }
+  100% { border-color: #374151; }
+}
+
+.chart-box {
+  margin-top: 35px;
+  height: 520px;
+  padding: 20px;
+}
+
+#healthChart,
+#futureChart {
+  width: 100% !important;
+  height: 450px !important;
+}
