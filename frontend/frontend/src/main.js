@@ -7,7 +7,7 @@ document.querySelector('#app').innerHTML = `
 
   <h2>System Architecture</h2>
   <div class="architecture">
-    <div class="box">Agent Outputs<br>(Risk, RUL, Anomaly)</div>
+    <div class="box">Component Outputs<br>(Risk, RUL, Anomaly)</div>
     <div class="arrow">➡️</div>
     <div class="box">Digital Twin<br>(Simulation Environment)</div>
     <div class="arrow">➡️</div>
@@ -75,6 +75,11 @@ document.querySelector('#app').innerHTML = `
       <div class="metric-card"><h3>Reward Score</h3><p id="rewardScore">-</p></div>
     </div>
   </div>
+
+  <div class="chart-box">
+  <h2>Model Comparison: PPO vs DQN vs A2C</h2>
+  <canvas id="modelComparisonChart"></canvas>
+    </div>
 
   <div id="extraInsightBox" style="display:none;">
     <h2>Current Health Indicators</h2>
@@ -495,6 +500,73 @@ async function getPrediction(cycle) {
   }
 }
 
+async function loadModelComparisonChart() {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/model-comparison')
+    const data = await res.json()
+
+    const labels = data.map(item => item.Model)
+    const avgReward = data.map(item => item["Average Reward"])
+    const failureAvoidance = data.map(item => item["Failure Avoidance %"])
+    const wrongDecisions = data.map(item => item["Wrong Critical Decisions"])
+
+    new Chart(document.getElementById('modelComparisonChart'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Average Reward',
+            data: avgReward,
+            borderWidth: 2
+          },
+          {
+            label: 'Failure Avoidance %',
+            data: failureAvoidance,
+            borderWidth: 2
+          },
+          {
+            label: 'Wrong Critical Decisions',
+            data: wrongDecisions,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff',
+              font: { size: 14, weight: 'bold' }
+            }
+          },
+          title: {
+            display: true,
+            text: 'RL Model Performance Comparison',
+            color: '#ffffff',
+            font: { size: 18, weight: 'bold' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#ffffff' },
+            grid: { color: '#374151' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#ffffff' },
+            grid: { color: '#374151' }
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Model comparison chart loading failed:', error)
+  }
+}
+
 async function loadChart() {
   try {
     const res = await fetch('http://127.0.0.1:8000/history')
@@ -615,3 +687,4 @@ document.querySelector('#stopBtn').onclick = () => {
 }
 
 loadChart()
+loadModelComparisonChart()

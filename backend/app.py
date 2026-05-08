@@ -79,3 +79,8 @@ def predict(cycle: int):
 def history():
     sample = df.head(100).copy()
     return sample.to_dict(orient="records")
+
+@app.get("/model-comparison")
+def get_model_comparison():
+    df = pd.read_csv("model_comparison_results.csv")
+    return df.to_dict(orient="records")

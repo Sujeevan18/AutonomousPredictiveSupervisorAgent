@@ -13,7 +13,7 @@ model = PPO(
     verbose=1
 )
 
-model.learn(total_timesteps=50000)
+model.learn(total_timesteps=100000)
 
 model.save("models/ppo_maintenance_model")
 
