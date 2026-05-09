@@ -5,150 +5,185 @@ document.querySelector('#app').innerHTML = `
 <div class="dashboard">
   <h1>Digital Twin PPO Maintenance Dashboard</h1>
 
-  <h2>System Architecture</h2>
-  <div class="architecture">
-    <div class="box">Component Outputs<br>(Risk, RUL, Anomaly)</div>
-    <div class="arrow">➡️</div>
-    <div class="box">Digital Twin<br>(Simulation Environment)</div>
-    <div class="arrow">➡️</div>
-    <div class="box">PPO Supervisor<br>(Decision Agent)</div>
-    <div class="arrow">➡️</div>
-    <div class="box">Maintenance Action<br>(Decision + Explanation)</div>
+  <div class="nav-bar">
+    <button onclick="showPage('navigatorPage')">Model Navigator</button>
+    <button onclick="showPage('dashboardPage')">Live Dashboard</button>
+    <button onclick="showPage('analyticsPage')">Analytics</button>
   </div>
 
-  <p>
-    This prototype uses a Digital Twin environment and PPO Reinforcement Learning
-    model to recommend maintenance actions.
-  </p>
+  <div id="navigatorPage" class="page active-page">
+    <h2>Page 1: Model Testing / Dataset Navigator</h2>
 
-  <div class="input-box">
-    <label>Enter Engine Cycle:</label>
-    <input type="number" id="cycleInput" value="50" min="1" max="200" />
-    <button id="predictBtn">Get Decision</button>
-    <button id="autoBtn">Start Auto Simulation</button>
-    <button id="stopBtn">Stop Simulation</button>
+    <h2>System Architecture</h2>
+    <div class="architecture">
+      <div class="box">Component Outputs<br>(Risk, RUL, Anomaly)</div>
+      <div class="arrow">➡️</div>
+      <div class="box">Digital Twin<br>(Simulation Environment)</div>
+      <div class="arrow">➡️</div>
+      <div class="box">PPO Supervisor<br>(Decision Agent)</div>
+      <div class="arrow">➡️</div>
+      <div class="box">Maintenance Action<br>(Decision + Explanation)</div>
+    </div>
+
+    <p>
+      This page allows the user to upload a new dataset, navigate different machine health rows,
+      and test how the trained PPO model responds.
+    </p>
+
+    <div class="input-box">
+      <h3>Upload New Dataset</h3>
+      <input type="file" id="datasetUpload" accept=".csv" />
+      <button id="uploadBtn">Upload Dataset</button>
+      <button id="resetBtn">Reset Default Dataset</button>
+      <p id="uploadStatus">Current source: default mock_agent_outputs.csv</p>
+    </div>
+
+    <div class="input-box">
+      <label>Enter Dataset Row Index:</label>
+      <input type="number" id="cycleInput" value="0" min="0" max="200" />
+      <button id="predictBtn">Get Decision</button>
+      <button id="autoBtn">Start Auto Simulation</button>
+      <button id="stopBtn">Stop Simulation</button>
+    </div>
+
+    <div id="resultBox" style="display:none;">
+      <h2>Maintenance Decision</h2>
+      <h2 id="systemStatus">System Status: -</h2>
+
+      <p><b>Cycle:</b> <span id="cycle"></span></p>
+      <p><b>Failure Risk:</b> <span id="failureRisk"></span></p>
+      <p><b>Predicted RUL:</b> <span id="predictedRul"></span></p>
+      <p><b>RUL Uncertainty:</b> <span id="rulUncertainty"></span></p>
+      <p><b>Anomaly Score:</b> <span id="anomalyScore"></span></p>
+
+      <h3>Selected Action: <span id="selectedAction"></span></h3>
+      <p><b>Explanation:</b> <span id="explanation"></span></p>
+      <p><b>Decision Confidence:</b> <span id="confidence"></span></p>
+    </div>
   </div>
 
-  <div id="alarmBox" class="alarm-box" style="display:none;">
-    ⚠️ CRITICAL MACHINE CONDITION DETECTED
-  </div>
+  <div id="dashboardPage" class="page">
+    <h2>Page 2: Live Maintenance Dashboard</h2>
 
-  <div id="resultBox" style="display:none;">
-    <h2>Maintenance Decision</h2>
-    <h2 id="systemStatus">System Status: -</h2>
+    <div id="alarmBox" class="alarm-box" style="display:none;">
+      ⚠️ CRITICAL MACHINE CONDITION DETECTED
+    </div>
 
-    <p><b>Cycle:</b> <span id="cycle"></span></p>
-    <p><b>Failure Risk:</b> <span id="failureRisk"></span></p>
-    <p><b>Predicted RUL:</b> <span id="predictedRul"></span></p>
-    <p><b>RUL Uncertainty:</b> <span id="rulUncertainty"></span></p>
-    <p><b>Anomaly Score:</b> <span id="anomalyScore"></span></p>
-
-    <h3>Selected Action: <span id="selectedAction"></span></h3>
-    <p><b>Explanation:</b> <span id="explanation"></span></p>
-    <p><b>Decision Confidence:</b> <span id="confidence"></span></p>
-  </div>
-
-  <div id="gaugeSection" style="display:none;">
-    <h2>SCADA-Style Live Health Gauges</h2>
-    <div class="gauge-row">
-      <div class="gauge-card">
-        <canvas id="riskGauge" width="220" height="150"></canvas>
-        <h3>Failure Risk</h3>
+    <div id="gaugeSection" style="display:none;">
+      <h2>SCADA-Style Live Health Gauges</h2>
+      <div class="gauge-row">
+        <div class="gauge-card">
+          <canvas id="riskGauge" width="220" height="150"></canvas>
+          <h3>Failure Risk</h3>
+        </div>
+        <div class="gauge-card">
+          <canvas id="anomalyGauge" width="220" height="150"></canvas>
+          <h3>Anomaly Score</h3>
+        </div>
+        <div class="gauge-card">
+          <canvas id="rulGauge" width="220" height="150"></canvas>
+          <h3>RUL Health</h3>
+        </div>
       </div>
-      <div class="gauge-card">
-        <canvas id="anomalyGauge" width="220" height="150"></canvas>
-        <h3>Anomaly Score</h3>
+    </div>
+
+    <div id="extraInsightBox" style="display:none;">
+      <h2>Current Health Indicators</h2>
+
+      <label>Failure Risk</label>
+      <div class="bar"><div id="riskBar" class="bar-fill"></div></div>
+      <p id="riskPercent">-</p>
+
+      <label>Anomaly Score</label>
+      <div class="bar"><div id="anomalyBar" class="bar-fill"></div></div>
+      <p id="anomalyPercent">-</p>
+
+      <label>RUL Health</label>
+      <div class="bar"><div id="rulBar" class="bar-fill"></div></div>
+      <p id="rulPercent">-</p>
+
+      <h2>Reward Breakdown</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><h3>Failure Avoidance Contribution</h3><p id="rewardFailure">-</p></div>
+        <div class="metric-card"><h3>Maintenance Cost Penalty</h3><p id="rewardMaintenance">-</p></div>
+        <div class="metric-card"><h3>Downtime Penalty</h3><p id="rewardDowntime">-</p></div>
+        <div class="metric-card"><h3>Final Reward</h3><p id="rewardFinal">-</p></div>
       </div>
-      <div class="gauge-card">
-        <canvas id="rulGauge" width="220" height="150"></canvas>
-        <h3>RUL Health</h3>
+
+      <h2>Action Meaning Table</h2>
+      <table class="action-table">
+        <tr><th>Action ID</th><th>Action</th><th>Meaning</th></tr>
+        <tr><td>0</td><td>Continue Operation</td><td>Machine is healthy enough to continue.</td></tr>
+        <tr><td>1</td><td>Increase Monitoring</td><td>Early degradation signs are detected.</td></tr>
+        <tr><td>2</td><td>Schedule Inspection</td><td>Machine should be inspected soon.</td></tr>
+        <tr><td>3</td><td>Preventive Maintenance</td><td>Maintenance is recommended before failure.</td></tr>
+        <tr><td>4</td><td>Emergency Stop</td><td>Critical condition; stop operation to avoid failure.</td></tr>
+      </table>
+
+      <h2>Autonomy Mode</h2>
+      <div class="info-card">
+        <h3>Current Deployment Mode: Human-on-the-loop</h3>
+        <p>
+          The PPO agent recommends maintenance actions autonomously, but engineers can still monitor
+          and override decisions in safety-critical situations.
+        </p>
+      </div>
+
+      <h2>Input Source</h2>
+      <div class="info-card">
+        <h3>Prototype Input: Dynamic Dataset Upload</h3>
+        <p>
+          This prototype can use the default mock dataset or a newly uploaded CSV dataset.
+          The trained PPO model predicts maintenance actions for the active dataset.
+        </p>
       </div>
     </div>
   </div>
 
-  <div id="metricsBox" style="display:none;">
-    <h2>Evaluation Metrics</h2>
-    <div class="metrics-grid">
-      <div class="metric-card"><h3>Failure Avoidance</h3><p id="failureAvoidance">-</p></div>
-      <div class="metric-card"><h3>Maintenance Cost</h3><p id="maintenanceCost">-</p></div>
-      <div class="metric-card"><h3>Downtime Penalty</h3><p id="downtimePenalty">-</p></div>
-      <div class="metric-card"><h3>Reward Score</h3><p id="rewardScore">-</p></div>
-    </div>
-  </div>
+  <div id="analyticsPage" class="page">
+    <h2>Page 3: Model Analytics and Evaluation</h2>
 
-  <div class="chart-box">
-  <h2>Model Comparison: PPO vs DQN vs A2C</h2>
-  <canvas id="modelComparisonChart"></canvas>
+    <div id="metricsBox" style="display:none;">
+      <h2>Evaluation Metrics</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><h3>Failure Avoidance</h3><p id="failureAvoidance">-</p></div>
+        <div class="metric-card"><h3>Maintenance Cost</h3><p id="maintenanceCost">-</p></div>
+        <div class="metric-card"><h3>Downtime Penalty</h3><p id="downtimePenalty">-</p></div>
+        <div class="metric-card"><h3>Reward Score</h3><p id="rewardScore">-</p></div>
+      </div>
     </div>
 
-  <div id="extraInsightBox" style="display:none;">
-    <h2>Current Health Indicators</h2>
-
-    <label>Failure Risk</label>
-    <div class="bar"><div id="riskBar" class="bar-fill"></div></div>
-    <p id="riskPercent">-</p>
-
-    <label>Anomaly Score</label>
-    <div class="bar"><div id="anomalyBar" class="bar-fill"></div></div>
-    <p id="anomalyPercent">-</p>
-
-    <label>RUL Health</label>
-    <div class="bar"><div id="rulBar" class="bar-fill"></div></div>
-    <p id="rulPercent">-</p>
-
-    <h2>Reward Breakdown</h2>
-    <div class="metrics-grid">
-      <div class="metric-card"><h3>Failure Avoidance Contribution</h3><p id="rewardFailure">-</p></div>
-      <div class="metric-card"><h3>Maintenance Cost Penalty</h3><p id="rewardMaintenance">-</p></div>
-      <div class="metric-card"><h3>Downtime Penalty</h3><p id="rewardDowntime">-</p></div>
-      <div class="metric-card"><h3>Final Reward</h3><p id="rewardFinal">-</p></div>
+    <div class="chart-box">
+      <h2>Model Comparison: PPO vs DQN vs A2C</h2>
+      <canvas id="modelComparisonChart"></canvas>
     </div>
 
-    <h2>Action Meaning Table</h2>
-    <table class="action-table">
-      <tr><th>Action ID</th><th>Action</th><th>Meaning</th></tr>
-      <tr><td>0</td><td>Continue Operation</td><td>Machine is healthy enough to continue.</td></tr>
-      <tr><td>1</td><td>Increase Monitoring</td><td>Early degradation signs are detected.</td></tr>
-      <tr><td>2</td><td>Schedule Inspection</td><td>Machine should be inspected soon.</td></tr>
-      <tr><td>3</td><td>Preventive Maintenance</td><td>Maintenance is recommended before failure.</td></tr>
-      <tr><td>4</td><td>Emergency Stop</td><td>Critical condition; stop operation to avoid failure.</td></tr>
-    </table>
-
-    <h2>Autonomy Mode</h2>
-    <div class="info-card">
-      <h3>Current Deployment Mode: Human-on-the-loop</h3>
-      <p>
-        The PPO agent can recommend actions autonomously, but in safety-critical maintenance,
-        engineers should monitor and override decisions when required.
-      </p>
+    <div class="chart-box">
+      <h2>Engine Health Trend</h2>
+      <canvas id="healthChart"></canvas>
     </div>
 
-    <h2>Input Source</h2>
-    <div class="info-card">
-      <h3>Prototype Input: Simulated Agent Outputs</h3>
-      <p>
-        This prototype currently uses mock outputs for failure risk, RUL, uncertainty,
-        and anomaly score. Later, this CSV can be replaced with final group ETL/model outputs.
-      </p>
+    <div class="chart-box">
+      <h2>Predictive Future Degradation Timeline</h2>
+      <canvas id="futureChart"></canvas>
     </div>
-  </div>
-
-  <div class="chart-box">
-    <h2>Engine Health Trend</h2>
-    <canvas id="healthChart"></canvas>
-  </div>
-
-  <div class="chart-box">
-    <h2>Predictive Future Degradation Timeline</h2>
-    <canvas id="futureChart"></canvas>
   </div>
 </div>
 `
 
 let autoInterval = null
-let autoCycle = 1
+let autoCycle = 0
 let healthChart = null
 let futureChart = null
+let modelComparisonChart = null
+
+window.showPage = function (pageId) {
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active-page')
+  })
+
+  document.getElementById(pageId).classList.add('active-page')
+}
 
 function getStatus(data) {
   if (data.failure_risk >= 0.8 || data.anomaly_score >= 0.8 || data.predicted_rul <= 20) {
@@ -213,8 +248,9 @@ function calculateMetrics(data) {
 
 function drawNeedleGauge(canvasId, value, label) {
   const canvas = document.getElementById(canvasId)
-  const ctx = canvas.getContext('2d')
+  if (!canvas) return
 
+  const ctx = canvas.getContext('2d')
   const width = canvas.width
   const height = canvas.height
   const cx = width / 2
@@ -222,10 +258,6 @@ function drawNeedleGauge(canvasId, value, label) {
   const radius = 85
 
   ctx.clearRect(0, 0, width, height)
-
-  const startAngle = Math.PI
-  const endAngle = 2 * Math.PI
-
   ctx.lineWidth = 18
 
   ctx.beginPath()
@@ -240,10 +272,10 @@ function drawNeedleGauge(canvasId, value, label) {
 
   ctx.beginPath()
   ctx.strokeStyle = '#ef4444'
-  ctx.arc(cx, cy, radius, Math.PI + Math.PI * 0.8, endAngle)
+  ctx.arc(cx, cy, radius, Math.PI + Math.PI * 0.8, 2 * Math.PI)
   ctx.stroke()
 
-  const angle = startAngle + (value / 100) * Math.PI
+  const angle = Math.PI + (value / 100) * Math.PI
   const needleLength = radius - 15
 
   ctx.beginPath()
@@ -272,6 +304,7 @@ function drawNeedleGauge(canvasId, value, label) {
 
 function animateGauge(canvasId, targetValue, label) {
   let current = 0
+
   const interval = setInterval(() => {
     drawNeedleGauge(canvasId, current, label)
 
@@ -329,7 +362,6 @@ function updateFutureTimeline(data) {
   for (let i = 0; i <= 10; i++) {
     const futureCycle = currentCycle + i * 5
     futureLabels.push(futureCycle)
-
     futureRisk.push(Math.min(1, currentRisk + i * 0.035))
     futureAnomaly.push(Math.min(1, currentAnomaly + i * 0.03))
     futureRul.push(Math.max(0, (currentRul - i * 5) / 200))
@@ -374,9 +406,7 @@ function updateFutureTimeline(data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          labels: { color: '#ffffff' }
-        },
+        legend: { labels: { color: '#ffffff' } },
         title: {
           display: true,
           text: 'Forecasted Machine Health for Next 50 Cycles',
@@ -449,6 +479,11 @@ function animateArchitecture() {
 }
 
 function updateUI(data) {
+  if (data.error) {
+    alert(data.error)
+    return
+  }
+
   document.querySelector('#resultBox').style.display = 'block'
 
   document.querySelector('#cycle').textContent = data.cycle
@@ -459,8 +494,7 @@ function updateUI(data) {
   document.querySelector('#selectedAction').textContent = data.selected_action
   document.querySelector('#explanation').textContent = data.explanation
 
-  document.querySelector('#systemStatus').textContent =
-    `System Status: ${getStatus(data)}`
+  document.querySelector('#systemStatus').textContent = `System Status: ${getStatus(data)}`
 
   const metrics = calculateMetrics(data)
 
@@ -470,32 +504,90 @@ function updateUI(data) {
   document.querySelector('#downtimePenalty').textContent = `${metrics.downtimePenalty}`
   document.querySelector('#rewardScore').textContent = metrics.rewardScore
 
+  let confidence = 'Stable Decision'
+
+  if (data.failure_risk > 0.7 || data.anomaly_score > 0.7) {
+    confidence = 'High Risk Decision ⚠️'
+  } else if (data.failure_risk > 0.4) {
+    confidence = 'Moderate Confidence'
+  }
+
+  document.querySelector('#confidence').textContent = confidence
+
   animateArchitecture()
   updateExtraInsights(data, metrics)
   updateGauges(data)
   updateAlarm(data)
   updateFutureTimeline(data)
-
-  let confidence = "Stable"
-
-if (data.failure_risk > 0.7 || data.anomaly_score > 0.7) {
-  confidence = "High Risk Decision ⚠️"
-} else if (data.failure_risk > 0.4) {
-  confidence = "Moderate Confidence"
-} else {
-  confidence = "Stable Decision"
 }
 
-document.querySelector('#confidence').textContent = confidence
-}
-
-async function getPrediction(cycle) {
+async function getPrediction(index) {
   try {
-    const res = await fetch(`http://127.0.0.1:8000/predict/${cycle}`)
+    const res = await fetch(`http://127.0.0.1:8000/predict/${index}`)
     const data = await res.json()
     updateUI(data)
   } catch (error) {
     alert('Failed to fetch prediction. Make sure backend is running.')
+    console.error(error)
+  }
+}
+
+async function uploadDataset() {
+  const fileInput = document.querySelector('#datasetUpload')
+  const file = fileInput.files[0]
+
+  if (!file) {
+    alert('Please select a CSV file first.')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const res = await fetch('http://127.0.0.1:8000/upload-dataset', {
+      method: 'POST',
+      body: formData
+    })
+
+    const data = await res.json()
+
+    if (data.status === 'success') {
+      document.querySelector('#uploadStatus').textContent =
+        `Uploaded successfully. Active rows: ${data.rows}`
+
+      document.querySelector('#cycleInput').value = 0
+      autoCycle = 0
+
+      loadChart()
+      getPrediction(0)
+    } else {
+      document.querySelector('#uploadStatus').textContent = data.message
+    }
+  } catch (error) {
+    alert('Dataset upload failed. Make sure backend is running.')
+    console.error(error)
+  }
+}
+
+async function resetDataset() {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/reset-dataset', {
+      method: 'POST'
+    })
+
+    const data = await res.json()
+
+    document.querySelector('#uploadStatus').textContent =
+      `Reset successful. Active rows: ${data.rows}`
+
+    document.querySelector('#cycleInput').value = 0
+    autoCycle = 0
+
+    loadChart()
+    getPrediction(0)
+  } catch (error) {
+    alert('Dataset reset failed.')
     console.error(error)
   }
 }
@@ -506,11 +598,15 @@ async function loadModelComparisonChart() {
     const data = await res.json()
 
     const labels = data.map(item => item.Model)
-    const avgReward = data.map(item => item["Average Reward"])
-    const failureAvoidance = data.map(item => item["Failure Avoidance %"])
-    const wrongDecisions = data.map(item => item["Wrong Critical Decisions"])
+    const avgReward = data.map(item => item['Average Reward'])
+    const failureAvoidance = data.map(item => item['Failure Avoidance %'])
+    const wrongDecisions = data.map(item => item['Wrong Critical Decisions'])
 
-    new Chart(document.getElementById('modelComparisonChart'), {
+    if (modelComparisonChart) {
+      modelComparisonChart.destroy()
+    }
+
+    modelComparisonChart = new Chart(document.getElementById('modelComparisonChart'), {
       type: 'bar',
       data: {
         labels: labels,
@@ -572,12 +668,21 @@ async function loadChart() {
     const res = await fetch('http://127.0.0.1:8000/history')
     const data = await res.json()
 
+    if (data.error) {
+      console.error(data.error)
+      return
+    }
+
     const labels = data.map(d => d.cycle)
-    const maxRul = Math.max(...data.map(d => d.predicted_rul))
+    const maxRul = Math.max(...data.map(d => d.predicted_rul), 1)
 
     const failureRisk = data.map(d => d.failure_risk)
     const anomaly = data.map(d => d.anomaly_score)
     const normalizedRul = data.map(d => d.predicted_rul / maxRul)
+
+    if (healthChart) {
+      healthChart.destroy()
+    }
 
     healthChart = new Chart(document.getElementById('healthChart'), {
       type: 'line',
@@ -662,8 +767,8 @@ async function loadChart() {
 }
 
 document.querySelector('#predictBtn').onclick = () => {
-  const cycle = document.querySelector('#cycleInput').value
-  getPrediction(cycle)
+  const index = document.querySelector('#cycleInput').value
+  getPrediction(index)
 }
 
 document.querySelector('#autoBtn').onclick = () => {
@@ -673,10 +778,10 @@ document.querySelector('#autoBtn').onclick = () => {
     document.querySelector('#cycleInput').value = autoCycle
     getPrediction(autoCycle)
 
-    autoCycle += 5
+    autoCycle += 1
 
     if (autoCycle > 200) {
-      autoCycle = 1
+      autoCycle = 0
     }
   }, 1000)
 }
@@ -686,5 +791,9 @@ document.querySelector('#stopBtn').onclick = () => {
   autoInterval = null
 }
 
+document.querySelector('#uploadBtn').onclick = uploadDataset
+document.querySelector('#resetBtn').onclick = resetDataset
+
 loadChart()
 loadModelComparisonChart()
+getPrediction(0)
