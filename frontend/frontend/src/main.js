@@ -30,19 +30,13 @@ document.querySelector('#app').innerHTML = `
       and test how the trained PPO model responds.
     </p>
 
-    <div class="input-box">
-      <h3>Upload New Dataset</h3>
-      <input type="file" id="datasetUpload" accept=".csv" />
-      <button id="uploadBtn">Upload Dataset</button>
-      <button id="resetBtn">Reset Default Dataset</button>
-      <p id="uploadStatus">Current source: default mock_agent_outputs.csv</p>
-    </div>
+    
 
     <div class="input-box">
       <label>Enter Dataset Row Index:</label>
       <input type="number" id="cycleInput" value="0" min="0" max="200" />
       <button id="predictBtn">Get Decision</button>
-      <button id="autoBtn">Start Auto Simulation</button>
+      <button id="autoBtn">Start Real-Time Simulator</button>
       <button id="stopBtn">Stop Simulation</button>
     </div>
 
@@ -141,33 +135,33 @@ document.querySelector('#app').innerHTML = `
   </div>
 
   <div id="analyticsPage" class="page">
-    <h2>Page 3: Model Analytics and Evaluation</h2>
+  <h2>Page 3: Model Analytics and Evaluation</h2>
 
-    <div id="metricsBox" style="display:none;">
-      <h2>Evaluation Metrics</h2>
-      <div class="metrics-grid">
-        <div class="metric-card"><h3>Failure Avoidance</h3><p id="failureAvoidance">-</p></div>
-        <div class="metric-card"><h3>Maintenance Cost</h3><p id="maintenanceCost">-</p></div>
-        <div class="metric-card"><h3>Downtime Penalty</h3><p id="downtimePenalty">-</p></div>
-        <div class="metric-card"><h3>Reward Score</h3><p id="rewardScore">-</p></div>
-      </div>
-    </div>
-
-    <div class="chart-box">
-      <h2>Model Comparison: PPO vs DQN vs A2C</h2>
-      <canvas id="modelComparisonChart"></canvas>
-    </div>
-
-    <div class="chart-box">
-      <h2>Engine Health Trend</h2>
-      <canvas id="healthChart"></canvas>
-    </div>
-
-    <div class="chart-box">
-      <h2>Predictive Future Degradation Timeline</h2>
-      <canvas id="futureChart"></canvas>
+  <div id="metricsBox" style="display:none;">
+    <h2>Evaluation Metrics</h2>
+    <div class="metrics-grid">
+      <div class="metric-card"><h3>Failure Avoidance</h3><p id="failureAvoidance">-</p></div>
+      <div class="metric-card"><h3>Maintenance Cost</h3><p id="maintenanceCost">-</p></div>
+      <div class="metric-card"><h3>Downtime Penalty</h3><p id="downtimePenalty">-</p></div>
+      <div class="metric-card"><h3>Reward Score</h3><p id="rewardScore">-</p></div>
     </div>
   </div>
+
+  <div class="chart-box future-chart-box">
+    <h2>Predictive Future Degradation Timeline</h2>
+    <canvas id="futureChart"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h2>Model Comparison: PPO vs DQN vs A2C</h2>
+    <canvas id="modelComparisonChart"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h2>Engine Health Trend</h2>
+    <canvas id="healthChart"></canvas>
+  </div>
+</div>
 </div>
 `
 
@@ -766,12 +760,12 @@ async function loadChart() {
   }
 }
 
-document.querySelector('#predictBtn').onclick = () => {
+document.querySelector('#predictBtn')?.addEventListener('click', () => {
   const index = document.querySelector('#cycleInput').value
   getPrediction(index)
-}
+})
 
-document.querySelector('#autoBtn').onclick = () => {
+document.querySelector('#autoBtn')?.addEventListener('click', () => {
   if (autoInterval) return
 
   autoInterval = setInterval(() => {
@@ -784,15 +778,15 @@ document.querySelector('#autoBtn').onclick = () => {
       autoCycle = 0
     }
   }, 1000)
-}
+})
 
-document.querySelector('#stopBtn').onclick = () => {
+document.querySelector('#stopBtn')?.addEventListener('click', () => {
   clearInterval(autoInterval)
   autoInterval = null
-}
+})
 
-document.querySelector('#uploadBtn').onclick = uploadDataset
-document.querySelector('#resetBtn').onclick = resetDataset
+document.querySelector('#uploadBtn')?.addEventListener('click', uploadDataset)
+document.querySelector('#resetBtn')?.addEventListener('click', resetDataset)
 
 loadChart()
 loadModelComparisonChart()
